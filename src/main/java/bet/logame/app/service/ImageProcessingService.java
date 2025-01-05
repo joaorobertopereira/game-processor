@@ -1,63 +1,82 @@
 package bet.logame.app.service;
 
-import bet.logame.app.domain.SisCassinoJogo;
-import bet.logame.app.domain.repository.SisCassinoJogoRepository;
 import bet.logame.app.utils.FileNameGenerator;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Optional;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
-@Service
 @Slf4j
+@Component
 public class ImageProcessingService {
 
-    private final SisCassinoJogoRepository repository;
     private final RestTemplate restTemplate;
+    private FileWriter sqlFileWriter;
+    private int processedCount;
+    private int errorCount;
 
-    @Value("${bucket.download-url-base}")
-    private String downloadBaseUrl;
-    @Value("${bucket.upload-base-url}")
-    private String uploadBaseUrl;
-    @Value("${bucket.default-folder}")
-    private String defaultFolder;
+    private static final String DOWNLOAD_BASE_URL = "https://lr08x848qha5.objectstorage.sa-saopaulo-1.oci.customer-oci.com/p/mSvQH4TctRSaYT-9jzWZAJ-eUYw3NdUhY4JE49KoQqkRjFXlIq5gRSEfPQepvJRq/n/lr08x848qha5/b/logame-api-images/o";
+    private static final String UPLOAD_BASE_URL = "https://lr08x848qha5.objectstorage.sa-saopaulo-1.oci.customer-oci.com/p/i48CYVpGJG5MFIOxIkTWvLw3O1i9FlP-Hz5s9y1PpmKX5MAQxAuFC8R8vof1ROu0/n/lr08x848qha5/b/logame-api-images/o";
+    private static final String DEFAULT_FOLDER = "Casino/Games";
 
-    public ImageProcessingService(SisCassinoJogoRepository repository, RestTemplate restTemplate) {
-        this.repository = repository;
+    public ImageProcessingService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
+        initializeSqlFileWriter();
+        this.processedCount = 0;
+        this.errorCount = 0;
     }
 
-    public void processImages() throws Exception {
-        File directory = new File("src/main/resources/image/");
-        if (directory.exists() && directory.isDirectory()) {
-            File[] files = directory.listFiles((dir, name) -> name.endsWith(".png"));
-            if (files != null) {
-                for (File file : files) {
-                    processImage(file);
-                }
-            } else {
-                log.warn("Nenhum arquivo PNG encontrado no diretório.");
+    private void initializeSqlFileWriter() {
+        try {
+            File sqlDirectory = new File("sql");
+            if (!sqlDirectory.exists()) {
+                sqlDirectory.mkdirs();
             }
-        } else {
-            log.warn("Diretório inválido.");
+
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+            File sqlFile = new File(sqlDirectory, "update_" + timestamp + ".sql");
+            sqlFileWriter = new FileWriter(sqlFile, true);
+        } catch (IOException e) {
+            log.error("Erro ao inicializar o escritor de arquivos SQL", e);
         }
     }
 
-    public void processImage(File file) throws Exception {
-        log.info("Processando arquivo: {}", file.getName());
+    public void processImages(File directory) throws Exception {
+        File[] files = directory.listFiles((dir, name) -> name.endsWith(".png"));
+        if (files != null) {
+            for (File file : files) {
+                try {
+                    processImage(file);
+                    processedCount++;
+                } catch (Exception e) {
+                    log.error("Erro ao processar arquivo: {}", file.getName(), e);
+                    errorCount++;
+                }
+            }
+            log.info("Total de arquivos processados: {}", processedCount);
+            log.info("Total de arquivos com erro: {}", errorCount);
+        } else {
+            log.warn("Nenhum arquivo encontrado no diretório: {}", directory.getPath());
+        }
+    }
+
+    private void processImage(File file) throws Exception {
+        log.info("Processando a Imagem: {}", file.getName());
         String fileName = file.getName();
         String[] parts = fileName.split("-");
         if (parts.length < 4) {
-            log.warn("Nome do arquivo inválido: {}", fileName);
+            log.warn("Nome de arquivo inválido: {}", fileName);
             return;
         }
         String gameId = parts[0];
@@ -65,76 +84,59 @@ public class ImageProcessingService {
         String formato = parts[2];
         String color = parts[3].substring(0, 6);
 
-        Optional<SisCassinoJogo> optionalJogo = repository.findByGameidAndProvedor(gameId, provedor);
-        if (optionalJogo.isPresent()) {
-            SisCassinoJogo jogo = optionalJogo.get();
-            String newFileName = FileNameGenerator.gerarNomeArquivo();
-            String downloadLink = String.format("%s/%s/%s", downloadBaseUrl, defaultFolder, newFileName);
+        String newFileName = FileNameGenerator.gerarNomeArquivo();
+        String downloadLink = String.format("%s/%s/%s", DOWNLOAD_BASE_URL, DEFAULT_FOLDER, newFileName);
 
-            if (formato.equalsIgnoreCase("vertical")) {
-                jogo.setImagemHorizontal(downloadLink);
-            } else if (formato.equalsIgnoreCase("square")) {
-                jogo.setImagemQuadrada(downloadLink);
-            }
+        // Generate SQL update command
+        generateSqlUpdateCommand(gameId, provedor, downloadLink, formato);
+        generateSqlUpdateColorCommand(gameId, provedor, color);
 
-            jogo.setColor(color);
-            repository.save(jogo);
-
-            // Generate SQL update command
-            generateSqlUpdateCommand(jogo, formato);
-            generateSqlUpdateColorCommand(jogo);
-
-            // Renomear o arquivo
-            File newFile = new File(file.getParent(), newFileName);
-            if (file.renameTo(newFile)) {
-                log.info("Arquivo renomeado para: {}", newFileName);
-                uploadFile(newFile, newFileName);
-            } else {
-                log.warn("Falha ao renomear o arquivo: {}", fileName);
-            }
+        // Rename the file
+        File newFile = new File(file.getParent(), newFileName);
+        if (file.renameTo(newFile)) {
+            log.info("Arquivo renomeado para: {}", newFileName);
+            uploadFile(newFile, newFileName);
         } else {
-            log.warn("Jogo não encontrado para gameId: {} e provedor: {}", gameId, provedor);
+            log.warn("Falha ao renomear o arquivo: {}", fileName);
         }
     }
 
-    private void generateSqlUpdateCommand(SisCassinoJogo jogo, String formato) {
+    private void generateSqlUpdateCommand(String gameId, String provedor, String downloadLink, String formato) {
         String sql;
         if (formato.equalsIgnoreCase("vertical")) {
             sql = String.format(
                     "UPDATE sis_cassino_jogos SET imagem_horizontal='%s' WHERE gameid='%s' AND provedor='%s';",
-                    jogo.getImagemHorizontal(), jogo.getGameid(), jogo.getProvedor()
+                    downloadLink, gameId, provedor
             );
         } else if (formato.equalsIgnoreCase("square")) {
             sql = String.format(
                     "UPDATE sis_cassino_jogos SET imagem_quadrada='%s' WHERE gameid='%s' AND provedor='%s';",
-                    jogo.getImagemQuadrada(), jogo.getGameid(), jogo.getProvedor()
+                    downloadLink, gameId, provedor
             );
         } else {
             return; // No update needed for other formats
         }
 
-        try (FileWriter writer = new FileWriter("src/main/resources/sql/update_commands.sql", true)) {
-            writer.write(sql + System.lineSeparator());
-            log.info("Comando SQL gerado: {}", sql);
-        } catch (IOException e) {
-            log.error("Erro ao escrever o comando SQL no arquivo", e);
-        }
+        writeSqlToFile(sql);
     }
 
-    private void generateSqlUpdateColorCommand(SisCassinoJogo jogo) {
+    private void generateSqlUpdateColorCommand(String gameId, String provedor, String color) {
         String sql = String.format(
                 "UPDATE sis_cassino_jogos SET color='%s' WHERE gameid='%s' AND provedor='%s';",
-                jogo.getColor(), jogo.getGameid(), jogo.getProvedor()
+                color, gameId, provedor
         );
 
-        try (FileWriter writer = new FileWriter("src/main/resources/sql/update_commands.sql", true)) {
-            writer.write(sql + System.lineSeparator());
+        writeSqlToFile(sql);
+    }
+
+    private void writeSqlToFile(String sql) {
+        try {
+            sqlFileWriter.write(sql + System.lineSeparator());
             log.info("Comando SQL gerado: {}", sql);
         } catch (IOException e) {
             log.error("Erro ao escrever o comando SQL no arquivo", e);
         }
     }
-
 
     private void uploadFile(File file, String newFileName) {
         if (file.exists()) {
@@ -144,11 +146,34 @@ public class ImageProcessingService {
             FileSystemResource fileResource = new FileSystemResource(file);
             HttpEntity<FileSystemResource> requestEntity = new HttpEntity<>(fileResource, headers);
 
-            String url = String.format("%s/%s/%s", uploadBaseUrl, defaultFolder, newFileName);
+            String url = String.format("%s/%s/%s", UPLOAD_BASE_URL, DEFAULT_FOLDER, newFileName);
             restTemplate.put(url, requestEntity, String.class);
-            log.info("Arquivo enviado para o bucket: {}", url);
+            log.info("Imagem enviada: {}", url);
+
+            // Move the file to the 'processado' directory
+            File processedDir = new File(file.getParent(), "processado");
+            if (!processedDir.exists()) {
+                processedDir.mkdirs();
+            }
+            File processedFile = new File(processedDir, file.getName());
+            try {
+                Files.move(file.toPath(), processedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                log.info("Arquivo movido para o diretório 'processado': {}", processedFile.getPath());
+            } catch (IOException e) {
+                log.error("Falha ao mover o arquivo para o diretório 'processado': {}", file.getName(), e);
+            }
         } else {
             log.warn("Arquivo de imagem não encontrado: {}", file.getName());
+        }
+    }
+
+    public void closeSqlFileWriter() {
+        try {
+            if (sqlFileWriter != null) {
+                sqlFileWriter.close();
+            }
+        } catch (IOException e) {
+            log.error("Erro ao fechar o escritor de arquivos SQL", e);
         }
     }
 }

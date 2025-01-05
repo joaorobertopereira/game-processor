@@ -1,3 +1,5 @@
+// src/main/java/bet/logame/app/facade/impl/ProcessorFacadeImpl.java
+
 package bet.logame.app.facade.impl;
 
 import bet.logame.app.facade.ProcessorFacade;
@@ -18,25 +20,17 @@ public class ProcessorFacadeImpl implements ProcessorFacade {
     }
 
     @Override
-    public String processImages() {
-        String directoryPath = "src/main/resources/image/";
+    public void processImages(String directoryPath) {
         File directory = new File(directoryPath);
         if (directory.exists() && directory.isDirectory()) {
-            File[] files = directory.listFiles((dir, name) -> name.endsWith(".png"));
-            if (files != null) {
-                for (File file : files) {
-                    try {
-                        imageProcessingService.processImage(file);
-                    } catch (Exception e) {
-                        log.error("Erro ao processar arquivo: {}", file.getName(), e);
-                    }
-                }
-                return "Processamento de imagens concluído.";
-            } else {
-                return "Nenhum arquivo PNG encontrado no diretório.";
+            try {
+                imageProcessingService.processImages(directory);
+            } catch (Exception e) {
+                log.error("Erro ao processar arquivos no diretório: {}", directoryPath, e);
             }
+            imageProcessingService.closeSqlFileWriter();
         } else {
-            return "Diretório inválido.";
+            log.warn("O diretório não existe ou não é um diretório: {}", directoryPath);
         }
     }
 }

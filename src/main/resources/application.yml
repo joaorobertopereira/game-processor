@@ -10,16 +10,6 @@ spring:
     name: "@team.name@"
     email: "@team.email@"
 
-  datasource:
-    url: jdbc:mysql://localhost:3306/logame-api
-    username: root
-    password: '&aj*c7Dzjxt2&Nv*'
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  jpa:
-    hibernate:
-      ddl-auto: none
-    show-sql: false
-    properties: {}
 bucket:
   upload-base-url: https://lr08x848qha5.objectstorage.sa-saopaulo-1.oci.customer-oci.com/p/i48CYVpGJG5MFIOxIkTWvLw3O1i9FlP-Hz5s9y1PpmKX5MAQxAuFC8R8vof1ROu0/n/lr08x848qha5/b/logame-api-images/o
   download-url-base: https://lr08x848qha5.objectstorage.sa-saopaulo-1.oci.customer-oci.com/p/mSvQH4TctRSaYT-9jzWZAJ-eUYw3NdUhY4JE49KoQqkRjFXlIq5gRSEfPQepvJRq/n/lr08x848qha5/b/logame-api-images/o
@@ -28,6 +18,4 @@ bucket:
 logging:
   level:
     root: INFO
-    org:
-      springframework:
-        batch: DEBUG
+    org.springframework: OFF
