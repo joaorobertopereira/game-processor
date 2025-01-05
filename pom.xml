@@ -10,12 +10,18 @@
 	</parent>
 	<groupId>bet.logame</groupId>
 	<artifactId>games-processor</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>games-processor</name>
+	<version>0.0.1</version>
 	<description>Processador de imagens dos jogos</description>
-
+	<developers>
+		<developer>
+			<name>${team.name}</name>
+			<email>${team.email}</email>
+		</developer>
+	</developers>
 	<properties>
 		<java.version>21</java.version>
+		<team.name>João Roberto de França Pereira</team.name>
+		<team.email>joao@officecom.com.br</team.email>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -68,6 +74,17 @@
 	</dependencies>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>application.yml</include>
+					<include>logback-spring.xml</include>
+					<include>banner.txt</include>
+				</includes>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -81,6 +98,26 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>build-info</goal>
+						</goals>
+						<configuration>
+							<additionalProperties>
+								<developer>${team.name}</developer>
+								<email>${team.email}</email>
+								<application.name>${project.name}</application.name>
+							</additionalProperties>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

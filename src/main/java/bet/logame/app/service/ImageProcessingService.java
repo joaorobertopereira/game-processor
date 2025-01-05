@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Optional;
 
 @Service
@@ -78,6 +80,10 @@ public class ImageProcessingService {
             jogo.setColor(color);
             repository.save(jogo);
 
+            // Generate SQL update command
+            generateSqlUpdateCommand(jogo, formato);
+            generateSqlUpdateColorCommand(jogo);
+
             // Renomear o arquivo
             File newFile = new File(file.getParent(), newFileName);
             if (file.renameTo(newFile)) {
@@ -90,6 +96,45 @@ public class ImageProcessingService {
             log.warn("Jogo não encontrado para gameId: {} e provedor: {}", gameId, provedor);
         }
     }
+
+    private void generateSqlUpdateCommand(SisCassinoJogo jogo, String formato) {
+        String sql;
+        if (formato.equalsIgnoreCase("vertical")) {
+            sql = String.format(
+                    "UPDATE sis_cassino_jogos SET imagem_horizontal='%s' WHERE gameid='%s' AND provedor='%s';",
+                    jogo.getImagemHorizontal(), jogo.getGameid(), jogo.getProvedor()
+            );
+        } else if (formato.equalsIgnoreCase("square")) {
+            sql = String.format(
+                    "UPDATE sis_cassino_jogos SET imagem_quadrada='%s' WHERE gameid='%s' AND provedor='%s';",
+                    jogo.getImagemQuadrada(), jogo.getGameid(), jogo.getProvedor()
+            );
+        } else {
+            return; // No update needed for other formats
+        }
+
+        try (FileWriter writer = new FileWriter("src/main/resources/sql/update_commands.sql", true)) {
+            writer.write(sql + System.lineSeparator());
+            log.info("Comando SQL gerado: {}", sql);
+        } catch (IOException e) {
+            log.error("Erro ao escrever o comando SQL no arquivo", e);
+        }
+    }
+
+    private void generateSqlUpdateColorCommand(SisCassinoJogo jogo) {
+        String sql = String.format(
+                "UPDATE sis_cassino_jogos SET color='%s' WHERE gameid='%s' AND provedor='%s';",
+                jogo.getColor(), jogo.getGameid(), jogo.getProvedor()
+        );
+
+        try (FileWriter writer = new FileWriter("src/main/resources/sql/update_commands.sql", true)) {
+            writer.write(sql + System.lineSeparator());
+            log.info("Comando SQL gerado: {}", sql);
+        } catch (IOException e) {
+            log.error("Erro ao escrever o comando SQL no arquivo", e);
+        }
+    }
+
 
     private void uploadFile(File file, String newFileName) {
         if (file.exists()) {

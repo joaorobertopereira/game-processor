@@ -1,11 +1,14 @@
 <configuration>
+    <property name="appName" value="@project.artifactId@" />
+
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
             <providers>
                 <pattern>
                     <pattern>
                         {
-                        "timestamp": "%date{ISO8601}",
+                        "timestamp": "%date{yyyy-MM-dd HH:mm:ss}",
+                        "application": "${appName}",
                         "level": "%level",
                         "message": "%msg"
                         }
