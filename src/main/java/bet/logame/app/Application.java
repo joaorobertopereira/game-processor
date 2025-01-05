@@ -26,6 +26,7 @@ public class Application {
 		logger.info("Início do Processamento ...");
 		app.processImages();
 		logger.info("Final do Processamento ...");
+		SpringApplication.exit(context, () -> 0);
 	}
 
 	private void processImages() {
