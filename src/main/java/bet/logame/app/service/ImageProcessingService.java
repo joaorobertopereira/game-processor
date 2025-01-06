@@ -53,7 +53,7 @@ public class ImageProcessingService {
     }
 
     public void processImages(File directory) throws Exception {
-        File[] files = directory.listFiles((dir, name) -> name.endsWith(".png"));
+        File[] files = directory.listFiles((dir, name) -> name.endsWith(".webp"));
         if (files != null) {
             for (File file : files) {
                 try {

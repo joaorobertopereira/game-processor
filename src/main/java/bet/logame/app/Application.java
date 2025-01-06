@@ -39,7 +39,7 @@ public class Application {
 		try {
 			long fileCount = Files.list(imageDir)
 					.filter(Files::isRegularFile)
-					.filter(file -> file.toString().endsWith(".jpg") || file.toString().endsWith(".png"))
+					.filter(file -> file.toString().endsWith(".webp"))
 					.count();
 
 			logger.info("Total de imagens a processar: {}", fileCount);
