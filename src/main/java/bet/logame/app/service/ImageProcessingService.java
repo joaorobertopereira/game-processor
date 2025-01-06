@@ -82,7 +82,7 @@ public class ImageProcessingService {
         String gameId = parts[0];
         String provedor = parts[1];
         String formato = parts[2];
-        String color = parts[3].substring(0, 6);
+        String color = parts[3].substring(0, 7);
 
         String newFileName = FileNameGenerator.gerarNomeArquivo();
         String downloadLink = String.format("%s/%s/%s", DOWNLOAD_BASE_URL, DEFAULT_FOLDER, newFileName);

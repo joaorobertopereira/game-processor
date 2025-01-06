@@ -26,11 +26,11 @@ public class ProcessorFacadeImpl implements ProcessorFacade {
             try {
                 imageProcessingService.processImages(directory);
             } catch (Exception e) {
-                log.error("Erro ao processar arquivos no diretório: {}", directoryPath, e);
+                log.error("Erro ao processar arquivos no diretorio: {}", directoryPath, e);
             }
             imageProcessingService.closeSqlFileWriter();
         } else {
-            log.warn("O diretório não existe ou não é um diretório: {}", directoryPath);
+            log.warn("O diretorio nao existe ou não é um diretorio: {}", directoryPath);
         }
     }
 }

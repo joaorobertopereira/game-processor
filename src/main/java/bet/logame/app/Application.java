@@ -23,7 +23,7 @@ public class Application {
 	public static void main(String[] args) {
 		ApplicationContext context = SpringApplication.run(Application.class, args);
 		Application app = context.getBean(Application.class);
-		logger.info("Início do Processamento ...");
+		logger.info("Inicio do Processamento ...");
 		app.processImages();
 		logger.info("Final do Processamento ...");
 		SpringApplication.exit(context, () -> 0);
@@ -32,7 +32,7 @@ public class Application {
 	private void processImages() {
 		Path imageDir = Paths.get("image");
 		if (!Files.exists(imageDir) || !Files.isDirectory(imageDir)) {
-			logger.error("O diretório de imagens não existe ou não é um diretório.");
+			logger.error("O diretório de imagens nao existe ou nao é um diretorio.");
 			return;
 		}
 
@@ -44,9 +44,9 @@ public class Application {
 
 			logger.info("Total de imagens a processar: {}", fileCount);
 			processorFacade.processImages(imageDir.toString());
-			logger.info("Processamento de imagens concluído.");
+			logger.info("Processamento de imagens concluido.");
 		} catch (Exception e) {
-			logger.error("Erro ao processar as imagens no diretório: {}", imageDir, e);
+			logger.error("Erro ao processar as imagens no diretorio: {}", imageDir, e);
 		}
 	}
 }
