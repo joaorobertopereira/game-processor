@@ -9,6 +9,6 @@ public class FileNameGenerator {
 
     public static String gerarNomeArquivo() {
         log.info("Gerando nome de arquivo");
-        return ulid.nextULID() + ".png";
+        return ulid.nextULID() + ".webp";
     }
 }

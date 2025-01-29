@@ -158,12 +158,12 @@ public class ImageProcessingService {
             File processedFile = new File(processedDir, file.getName());
             try {
                 Files.move(file.toPath(), processedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                log.info("Arquivo movido para o diretório 'processado': {}", processedFile.getPath());
+                log.info("Arquivo movido para o diretorio 'processado': {}", processedFile.getPath());
             } catch (IOException e) {
-                log.error("Falha ao mover o arquivo para o diretório 'processado': {}", file.getName(), e);
+                log.error("Falha ao mover o arquivo para o diretorio 'processado': {}", file.getName(), e);
             }
         } else {
-            log.warn("Arquivo de imagem não encontrado: {}", file.getName());
+            log.warn("Arquivo de imagem nao encontrado: {}", file.getName());
         }
     }
 
