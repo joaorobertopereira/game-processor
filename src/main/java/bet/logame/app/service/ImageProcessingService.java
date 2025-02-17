@@ -74,13 +74,13 @@ public class ImageProcessingService {
     private void processImage(File file) throws Exception {
         log.info("Processando a Imagem: {}", file.getName());
         String fileName = file.getName();
-        String[] parts = fileName.split("-");
+        String[] parts = fileName.split("_");
         if (parts.length < 4) {
             log.warn("Nome de arquivo inválido: {}", fileName);
             return;
         }
         String gameId = parts[0];
-        String provedor = parts[1];
+        String fornecedor = parts[1];
         String formato = parts[2];
         String color = parts[3].substring(0, 7);
 
@@ -88,8 +88,8 @@ public class ImageProcessingService {
         String downloadLink = String.format("%s/%s/%s", DOWNLOAD_BASE_URL, DEFAULT_FOLDER, newFileName);
 
         // Generate SQL update command
-        generateSqlUpdateCommand(gameId, provedor, downloadLink, formato);
-        generateSqlUpdateColorCommand(gameId, provedor, color);
+        generateSqlUpdateCommand(gameId, fornecedor, downloadLink, formato);
+        generateSqlUpdateColorCommand(gameId, fornecedor, color);
 
         // Rename the file
         File newFile = new File(file.getParent(), newFileName);
@@ -101,17 +101,17 @@ public class ImageProcessingService {
         }
     }
 
-    private void generateSqlUpdateCommand(String gameId, String provedor, String downloadLink, String formato) {
+    private void generateSqlUpdateCommand(String gameId, String fornecedor, String downloadLink, String formato) {
         String sql;
         if (formato.equalsIgnoreCase("vertical")) {
             sql = String.format(
-                    "UPDATE sis_cassino_jogos SET imagem_horizontal='%s' WHERE gameid='%s' AND provedor='%s';",
-                    downloadLink, gameId, provedor
+                    "UPDATE sis_cassino_jogos SET imagem_horizontal='%s' WHERE gameid='%s' AND fornecedor='%s';",
+                    downloadLink, gameId, fornecedor
             );
         } else if (formato.equalsIgnoreCase("square")) {
             sql = String.format(
-                    "UPDATE sis_cassino_jogos SET imagem_quadrada='%s' WHERE gameid='%s' AND provedor='%s';",
-                    downloadLink, gameId, provedor
+                    "UPDATE sis_cassino_jogos SET imagem_quadrada='%s' WHERE gameid='%s' AND fornecedor='%s';",
+                    downloadLink, gameId, fornecedor
             );
         } else {
             return; // No update needed for other formats
@@ -120,10 +120,10 @@ public class ImageProcessingService {
         writeSqlToFile(sql);
     }
 
-    private void generateSqlUpdateColorCommand(String gameId, String provedor, String color) {
+    private void generateSqlUpdateColorCommand(String gameId, String fornecedor, String color) {
         String sql = String.format(
-                "UPDATE sis_cassino_jogos SET color='%s' WHERE gameid='%s' AND provedor='%s';",
-                color, gameId, provedor
+                "UPDATE sis_cassino_jogos SET color='%s' WHERE gameid='%s' AND fornecedor='%s';",
+                color, gameId, fornecedor
         );
 
         writeSqlToFile(sql);

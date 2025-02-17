@@ -1,0 +1,2 @@
+UPDATE sis_cassino_jogos SET imagem_quadrada='https://lr08x848qha5.objectstorage.sa-saopaulo-1.oci.customer-oci.com/p/mSvQH4TctRSaYT-9jzWZAJ-eUYw3NdUhY4JE49KoQqkRjFXlIq5gRSEfPQepvJRq/n/lr08x848qha5/b/logame-api-images/o/Casino/Games/01JM9Y2YAZMD004GWT8FQGPJK8.webp' WHERE gameid='aviator-wars' AND fornecedor='hypetech';
+UPDATE sis_cassino_jogos SET color='#38141e' WHERE gameid='aviator-wars' AND fornecedor='hypetech';

@@ -1,0 +1,4 @@
+UPDATE sis_cassino_jogos SET imagem_quadrada='https://lr08x848qha5.objectstorage.sa-saopaulo-1.oci.customer-oci.com/p/mSvQH4TctRSaYT-9jzWZAJ-eUYw3NdUhY4JE49KoQqkRjFXlIq5gRSEfPQepvJRq/n/lr08x848qha5/b/logame-api-images/o/Casino/Games/01JM9XGHVD6W90YHTQ7WK1ZXJ9.webp' WHERE gameid='vs25bomb' AND fornecedor='pragmaticplay';
+UPDATE sis_cassino_jogos SET color='#392118' WHERE gameid='vs25bomb' AND fornecedor='pragmaticplay';
+UPDATE sis_cassino_jogos SET imagem_quadrada='https://lr08x848qha5.objectstorage.sa-saopaulo-1.oci.customer-oci.com/p/mSvQH4TctRSaYT-9jzWZAJ-eUYw3NdUhY4JE49KoQqkRjFXlIq5gRSEfPQepvJRq/n/lr08x848qha5/b/logame-api-images/o/Casino/Games/01JM9XGJH5EJ7D1HTGT9238F0W.webp' WHERE gameid='vswaystut' AND fornecedor='pragmaticplay';
+UPDATE sis_cassino_jogos SET color='#4d180d' WHERE gameid='vswaystut' AND fornecedor='pragmaticplay';
